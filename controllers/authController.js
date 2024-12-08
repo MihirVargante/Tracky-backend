@@ -65,7 +65,6 @@ const register = async (req, res) => {
         return res
 	}
 };
-
 module.exports = {
 	signin,
 	register,

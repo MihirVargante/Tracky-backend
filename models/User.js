@@ -7,7 +7,7 @@ const userSchema = mongoose.Schema(
 		email: { type: String },
 		password: { type: String }
 	},
-	{ timestamp: true }
+	{ timestamps: true }
 );
 
 userSchema.pre('save', function (next) {
