@@ -1,33 +1,45 @@
 const Product = require('../models/Product');
-
+const scrapeAmazon=require('../services/amazonScrapper')
+const scrapeFlipkart=require('../services/flipkartScrapper')
 // Create a new product
 const createProduct = async (req, res) => {
     try {
-        const {  title,
-            price,
-            stock,
-            description,
-            image_url,
-            category,
-            link,
-            threshold_price,
-            current_price,
-            user_id } = req.body;
-        if (!title || !price) {
-            return res.status(400).json({ message: 'Name and price are required' });
+        const { link, threshold_price } = req.body;
+        
+        // Validate link and threshold_price
+        if (!link || !threshold_price) {
+            return res.status(400).json({ message: 'Link and threshold_price are required' });
         }
 
+        // Scrape data from the provided link (Amazon or Flipkart)
+        let productData;
+
+        if (link.includes("amazon")) {
+            productData = await scrapeAmazon(link);
+        } else if (link.includes("flipkart")) {
+            productData = await scrapeFlipkart(link);
+        } else {
+            return res.status(400).json({ message: 'Unsupported link' });
+        }
+
+        // Check if data was successfully scraped
+        if (!productData) {
+            return res.status(500).json({ message: 'Error scraping product data' });
+        }
+
+        const { title, price, stock, description, image, current_price } = productData;
+
+        // Create a new product
         const product = new Product({
             title,
-            price,
+            price: parseFloat(price.replace(/[^0-9.-]+/g, "")), // Clean price string
             stock,
             description,
-            image_url,
-            category,
+            image_url: image,
             link,
             threshold_price,
-            current_price,
-            user_id:req.user._id,
+            current_price: parseFloat(current_price) || parseFloat(price.replace(/[^0-9.-]+/g, "")), // Default to scraped price
+            user_id: req.user._id,
         });
 
         await product.save();
@@ -36,10 +48,10 @@ const createProduct = async (req, res) => {
         res.status(500).json({ message: 'Error creating product', error: err.message });
     }
 };
-
 // Get all products
 const getProducts = async (req, res) => {
     try {
+        console.log("here is your user id for requiest--->",req.user._id)
         const products = await Product.find({ user_id: req.user._id });
         res.status(200).json(products);
     } catch (err) {
@@ -70,11 +82,10 @@ const updateProduct = async (req, res) => {
             stock,
             description,
             image_url,
-            category,
             link,
             threshold_price,
             current_price,
-            user_id } = req.body;
+            user_id } = req.body;   
         const product = await Product.findById(req.params.id);
 
         if (!product) {
