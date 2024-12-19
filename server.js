@@ -1,4 +1,5 @@
 const express=require("express")
+const cron = require('cron');
 const app=express()
 const cors=require("cors")
 const morgan = require("morgan")
@@ -18,8 +19,9 @@ app.use('/auth',authRoutes)
 app.use('/test',isAuthenticated,testRoutes)
 app.use('/product',isAuthenticated,productRoutes)
 console.log("hi")
-updateProducts();
-
+    // Schedule the cron job
+const job = new cron.CronJob('0 * * * *', updateProducts);
+job.start();
 app.listen(port,()=>{
     console.log("listening on port :",port);
 })

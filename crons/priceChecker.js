@@ -1,4 +1,3 @@
-    const cron = require('cron');
     const Product = require('../models/Product');
     const scrapeAmazon = require('../services/amazonScrapper');
     const scrapeFlipkart = require('../services/flipkartScrapper');
@@ -68,8 +67,6 @@
             console.error('Error during product update:', error.message);
         }
     };
-    // Schedule the cron job
-    // const job = new cron.CronJob('*/30 * * * *', updateProducts);
-    // job.start();
+
 
     module.exports = updateProducts;
