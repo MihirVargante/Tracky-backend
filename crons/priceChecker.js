@@ -2,6 +2,7 @@
     const scrapeAmazon = require('../services/amazonScrapper');
     const scrapeFlipkart = require('../services/flipkartScrapper');
     const productController=require('../controllers/productController')
+    const notificationService=require('../services/emailService')
     // Helper function to update product in the database
 
     const parsePrice = (priceString) => {
@@ -55,6 +56,10 @@
                     console.log("here is old price-->"+product.current_price+" and here is new price--->"+parsePrice(updatedData.price))
                     if (hasChanges) {
                         console.log(`Changes detected for product ID ${_id}. Updating...`);
+                        if(updateProduct.price<=product.threshold_price){
+                            console.log(`Price has dropped to threshold price sending email to --> ${product.email}`);
+                            notificationService(product.email,product.link,updateProduct.price,product.threshold_price)
+                        }
                         await updateProduct(_id, updatedData);
                     } else {
                         console.log(`No changes detected for product ID ${_id}.`);
